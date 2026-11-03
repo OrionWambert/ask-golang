@@ -21,6 +21,7 @@ import (
 )
 
 type askFlags struct {
+	persona      string
 	budget       float64
 	schema       string
 	continueLast bool
@@ -50,6 +51,7 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	f := rootCmd.Flags()
+	f.StringVar(&flags.persona, "as", "", "use a persona saved with ask config set persona.<name>")
 	f.Float64Var(&flags.budget, "budget", 0, "maximum spend for this run, in US dollars")
 	f.StringVar(&flags.schema, "schema", "", "file holding a JSON schema the answer must follow")
 	f.BoolVarP(&flags.continueLast, "continue", "c", false, "continue the most recent conversation in this folder")
@@ -147,7 +149,27 @@ func buildRequest(prompt string, cfg *config.Config) (claude.Request, error) {
 	if flags.budget > 0 {
 		req.BudgetUSD = flags.budget
 	}
+	system, err := systemPrompt(cfg)
+	if err != nil {
+		return req, err
+	}
+	req.SystemPrompt = system
 	return req, nil
+}
+
+func systemPrompt(cfg *config.Config) (string, error) {
+	var parts []string
+	if cfg.SystemPrompt != "" {
+		parts = append(parts, cfg.SystemPrompt)
+	}
+	if flags.persona != "" {
+		persona, ok := cfg.Personas[flags.persona]
+		if !ok {
+			return "", fmt.Errorf("unknown persona %q: add it with ask config set persona.%s \"...\"", flags.persona, flags.persona)
+		}
+		parts = append(parts, persona)
+	}
+	return strings.Join(parts, "\n\n"), nil
 }
 
 // writeAnswer delivers the final answer, unless it was already streamed.
