@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -21,6 +22,7 @@ import (
 )
 
 type askFlags struct {
+	output       string
 	code         bool
 	persona      string
 	budget       float64
@@ -52,6 +54,7 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	f := rootCmd.Flags()
+	f.StringVarP(&flags.output, "output", "o", "", "write the answer to a file instead of the terminal")
 	f.BoolVar(&flags.code, "code", false, "print only the code blocks of the answer")
 	f.StringVar(&flags.persona, "as", "", "use a persona saved with ask config set persona.<name>")
 	f.Float64Var(&flags.budget, "budget", 0, "maximum spend for this run, in US dollars")
@@ -111,7 +114,7 @@ func runAsk(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	live := format == render.Text && !flags.noStream && !flags.code && req.Schema == ""
+	live := format == render.Text && !flags.noStream && flags.output == "" && !flags.code && req.Schema == ""
 	var stream liveWriter
 	var onText func(string)
 	spin := startSpinner(os.Stderr)
@@ -179,7 +182,18 @@ func writeAnswer(renderer render.Renderer, resp *claude.Response, shown bool) er
 	if shown {
 		return nil
 	}
-	return renderAnswer(os.Stdout, renderer, resp)
+	if flags.output == "" {
+		return renderAnswer(os.Stdout, renderer, resp)
+	}
+	var content bytes.Buffer
+	if err := renderAnswer(&content, renderer, resp); err != nil {
+		return err
+	}
+	if err := os.WriteFile(flags.output, content.Bytes(), 0o644); err != nil {
+		return err
+	}
+	fmt.Fprintln(os.Stderr, "saved to", flags.output)
+	return nil
 }
 
 func renderAnswer(w io.Writer, renderer render.Renderer, resp *claude.Response) error {
@@ -204,7 +218,7 @@ func codeOnly(resp *claude.Response) (string, error) {
 
 func renderOptions() render.Options {
 	opts := render.Options{
-		Styled: isTerminal(os.Stdout) && os.Getenv("NO_COLOR") == "",
+		Styled: isTerminal(os.Stdout) && os.Getenv("NO_COLOR") == "" && flags.output == "",
 		Width:  80,
 	}
 	if width, _, err := term.GetSize(int(os.Stdout.Fd())); err == nil && width > 0 {
