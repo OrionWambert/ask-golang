@@ -23,6 +23,7 @@ import (
 )
 
 type askFlags struct {
+	stats        bool
 	copyAnswer   bool
 	output       string
 	code         bool
@@ -56,6 +57,7 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	f := rootCmd.Flags()
+	f.BoolVar(&flags.stats, "stats", false, "print model, duration, cost and session id on stderr")
 	f.BoolVar(&flags.copyAnswer, "copy", false, "copy the answer to the clipboard")
 	f.StringVarP(&flags.output, "output", "o", "", "write the answer to a file instead of the terminal")
 	f.BoolVar(&flags.code, "code", false, "print only the code blocks of the answer")
@@ -135,6 +137,10 @@ func runAsk(cmd *cobra.Command, args []string) error {
 	}
 	if err := writeAnswer(renderer, resp, live && stream.wrote); err != nil {
 		return err
+	}
+	if flags.stats {
+		fmt.Fprintf(os.Stderr, "%s | %.1fs | $%.4f | %d turns | session %s\n",
+			resp.Model, float64(resp.DurationMS)/1000, resp.CostUSD, resp.NumTurns, resp.SessionID)
 	}
 	if flags.copyAnswer {
 		copyToClipboard(resp)
