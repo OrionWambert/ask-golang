@@ -72,6 +72,10 @@ func (r *Runner) Run(ctx context.Context, req Request, onText func(string)) (*Re
 // through stdin, so long messages never hit the command line length limit.
 func buildArgs(req Request) []string {
 	args := []string{"-p", "--output-format", "stream-json", "--verbose", "--include-partial-messages"}
+	if !req.Tools {
+		// --tools only covers built-in tools: MCP tools need --strict-mcp-config.
+		args = append(args, "--tools", "", "--strict-mcp-config")
+	}
 	if req.Model != "" {
 		args = append(args, "--model", req.Model)
 	}

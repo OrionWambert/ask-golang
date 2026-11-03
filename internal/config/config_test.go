@@ -26,6 +26,7 @@ func TestSaveAndLoadRoundTrip(t *testing.T) {
 		"system_prompt":    "be brief",
 		"budget":           "0.5",
 		"history":          "false",
+		"tools":            "true",
 		"persona.reviewer": "review code",
 	} {
 		if err := cfg.Set(key, value); err != nil {
@@ -45,6 +46,9 @@ func TestSaveAndLoadRoundTrip(t *testing.T) {
 	if got.HistoryEnabled() {
 		t.Error("history should be off")
 	}
+	if !got.Tools {
+		t.Error("tools should be on")
+	}
 	if value, ok, _ := got.Get("persona.reviewer"); !ok || value != "review code" {
 		t.Errorf("persona = %q, %v", value, ok)
 	}
@@ -52,7 +56,7 @@ func TestSaveAndLoadRoundTrip(t *testing.T) {
 
 func TestSetRejectsBadValues(t *testing.T) {
 	cfg := &Config{}
-	for _, pair := range [][2]string{{"budget", "abc"}, {"budget", "-1"}, {"history", "maybe"}, {"nope", "x"}, {"persona.", "x"}} {
+	for _, pair := range [][2]string{{"budget", "abc"}, {"budget", "-1"}, {"history", "maybe"}, {"tools", "maybe"}, {"nope", "x"}, {"persona.", "x"}} {
 		if err := cfg.Set(pair[0], pair[1]); err == nil {
 			t.Errorf("no error for %v", pair)
 		}
