@@ -23,6 +23,7 @@ import (
 )
 
 type askFlags struct {
+	noHistory    bool
 	stats        bool
 	copyAnswer   bool
 	output       string
@@ -57,6 +58,7 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	f := rootCmd.Flags()
+	f.BoolVar(&flags.noHistory, "no-history", false, "do not save this answer to the history")
 	f.BoolVar(&flags.stats, "stats", false, "print model, duration, cost and session id on stderr")
 	f.BoolVar(&flags.copyAnswer, "copy", false, "copy the answer to the clipboard")
 	f.StringVarP(&flags.output, "output", "o", "", "write the answer to a file instead of the terminal")
@@ -135,6 +137,7 @@ func runAsk(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	saveHistory(cfg, message, resp)
 	if err := writeAnswer(renderer, resp, live && stream.wrote); err != nil {
 		return err
 	}
