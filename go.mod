@@ -5,6 +5,7 @@ go 1.24.4
 require (
 	github.com/charmbracelet/glamour v0.10.0
 	github.com/spf13/cobra v1.10.2
+	golang.org/x/term v0.31.0
 )
 
 require (
@@ -33,6 +34,5 @@ require (
 	github.com/yuin/goldmark-emoji v1.0.5 // indirect
 	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/sys v0.32.0 // indirect
-	golang.org/x/term v0.31.0 // indirect
 	golang.org/x/text v0.24.0 // indirect
 )
