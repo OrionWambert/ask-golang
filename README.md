@@ -1,5 +1,9 @@
 # ask
 
+[![CI](https://github.com/OrionWambert/ask-golang/actions/workflows/ci.yml/badge.svg)](https://github.com/OrionWambert/ask-golang/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/OrionWambert/ask-golang)](https://github.com/OrionWambert/ask-golang/releases/latest)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 Ask Claude from your terminal. `ask` sends a message to the local `claude` binary and prints the answer as it is written, in the format you pick.
 
 ```
@@ -11,9 +15,33 @@ ask -f main.go "explain this file" --format markdown
 ## Requirements
 
 - [Claude Code](https://code.claude.com/docs): the `claude` binary must be on your PATH and logged in.
-- [Go](https://go.dev/dl/) 1.24 or later, to build from source.
+- [Go](https://go.dev/dl/) 1.24 or later, only to build from source.
 
 ## Install
+
+**Windows (PowerShell)**
+
+```powershell
+irm https://raw.githubusercontent.com/OrionWambert/ask-golang/main/scripts/get.ps1 | iex
+```
+
+**Linux and macOS**
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/OrionWambert/ask-golang/main/scripts/get.sh | sh
+```
+
+These download the latest [release](https://github.com/OrionWambert/ask-golang/releases/latest), verify its checksum and install it for the current user. You can also download an archive by hand.
+
+**With Go**
+
+```
+go install github.com/OrionWambert/ask-golang@latest
+```
+
+This names the binary `ask-golang`. To get `ask`, build from source.
+
+### From source
 
 Run this from the project folder.
 
@@ -86,8 +114,13 @@ Piped input is read automatically. Files and piped input come before your messag
 | `--schema <file>` | JSON schema the answer must follow |
 | `--as <persona>` | Use a saved persona |
 | `--budget <usd>` | Maximum spend for this run. `claude` checks it between steps, so a run can end slightly over the limit, and it then exits with an error |
+| `--tools` | Let Claude use tools, following your Claude Code permission settings |
 
-`ask` runs `claude -p`, so Claude can use its tools according to your Claude Code permission settings, in the current folder.
+### Tools are off by default
+
+Claude only sees what you give it and can't run commands, read or edit files, or use MCP servers. This keeps `curl ... | ask "summarize"` safe: text you pipe in may contain instructions, and with no tools there is nothing for them to trigger. Give Claude context with `-f` or a pipe.
+
+Add `--tools` when you want Claude to act in the current folder. It then has the tools your Claude Code permission settings allow, so only use it with input you trust. To make it the default, run `ask config set tools true`.
 
 ### Examples
 
@@ -141,7 +174,7 @@ $OutputEncoding = [System.Text.UTF8Encoding]::new()
 
 1. **Build the prompt:** `internal/input` merges your files, piped input and message, in that order.
 2. **Apply defaults:** `cmd` reads your config, and flags on the command line win over it.
-3. **Run Claude:** `internal/claude` starts `claude -p` in stream-json mode and sends the prompt through stdin, so long messages never hit the command line length limit.
+3. **Run Claude:** `internal/claude` starts `claude -p` in stream-json mode, with tools off unless you asked for them, and sends the prompt through stdin, so long messages never hit the command line length limit.
 4. **Read the events:** the same package reads Claude's events as they arrive, passes along the text, and collects the final result with its cost and session id.
 5. **Show the answer:** `text` prints each piece as it arrives. `markdown`, `json`, `--code`, `--schema` and `--output` wait for the complete answer, then `internal/render` formats it.
 6. **Finish up:** `internal/history` saves the answer, then `ask` handles `--stats` and `--copy`.
@@ -168,6 +201,7 @@ ask config path
 | `system_prompt` | Text added to Claude's system prompt on every run |
 | `budget` | Default maximum spend per run, in US dollars |
 | `history` | `true` or `false` |
+| `tools` | `true` or `false`. See [Tools are off by default](#tools-are-off-by-default) |
 | `persona.<name>` | Text added to the system prompt with `--as <name>` |
 
 The config lives in `ask/config.json` in your user config folder (`%APPDATA%` on Windows, `~/.config` on Linux, `~/Library/Application Support` on macOS). Set `ASK_CONFIG_DIR` to use another folder.
@@ -204,3 +238,9 @@ make test     # or: go vet ./... && go test ./...
 ```
 
 `cmd/` holds the Cobra commands, and `internal/` holds the logic. See [PROJECT.md](PROJECT.md) for the design.
+
+Pushing a `v*` tag publishes a release with GoReleaser.
+
+## License
+
+[MIT](LICENSE)

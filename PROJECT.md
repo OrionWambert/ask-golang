@@ -33,7 +33,9 @@ ask-golang/
 ├── README.md
 ├── PROJECT.md
 ├── Makefile
-├── scripts/              # install and uninstall, for Windows and POSIX
+├── .goreleaser.yaml      # release archives
+├── .github/workflows/    # CI on three systems, release on tags
+├── scripts/              # get (release), install and uninstall (source), for Windows and POSIX
 ├── cmd/
 │   ├── root.go           # ask "message": flags and wiring
 │   ├── spinner.go        # activity indicator on stderr
@@ -116,5 +118,6 @@ All the features below are implemented. Most are thin wrappers over `claude` fla
 - Send long messages through stdin rather than an argument, since Windows limits command line length.
 - Pass a `context.Context` to `exec.CommandContext` so Ctrl+C stops the `claude` process.
 - Check that `claude` is on the PATH and return a clear error if not.
+- Tools are off by default, which takes both `--tools ""` and `--strict-mcp-config`: `--tools` alone leaves MCP tools available. `--json-schema` still works, since it only adds an internal `StructuredOutput` tool.
 - `stream-json` with `-p` also needs `--verbose`: `claude` refuses to run without it.
 - Dependencies are pinned to versions that still support Go 1.24. Newer `golang.org/x/*` releases raise the `go` directive to 1.26.
