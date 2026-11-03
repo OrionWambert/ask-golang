@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -20,6 +21,7 @@ import (
 )
 
 type askFlags struct {
+	schema       string
 	continueLast bool
 	resume       string
 	format       string
@@ -47,6 +49,7 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	f := rootCmd.Flags()
+	f.StringVar(&flags.schema, "schema", "", "file holding a JSON schema the answer must follow")
 	f.BoolVarP(&flags.continueLast, "continue", "c", false, "continue the most recent conversation in this folder")
 	f.StringVarP(&flags.resume, "resume", "r", "", "resume a conversation by session id")
 	rootCmd.MarkFlagsMutuallyExclusive("continue", "resume")
@@ -102,7 +105,7 @@ func runAsk(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	live := format == render.Text && !flags.noStream
+	live := format == render.Text && !flags.noStream && req.Schema == ""
 	var stream liveWriter
 	var onText func(string)
 	spin := startSpinner(os.Stderr)
@@ -125,6 +128,16 @@ func buildRequest(prompt string, cfg *config.Config) (claude.Request, error) {
 	req := claude.Request{Prompt: prompt, Model: firstNonEmpty(flags.model, cfg.Model)}
 	req.Continue = flags.continueLast
 	req.ResumeID = flags.resume
+	if flags.schema != "" {
+		schema, err := os.ReadFile(flags.schema)
+		if err != nil {
+			return req, fmt.Errorf("read schema: %w", err)
+		}
+		if !json.Valid(schema) {
+			return req, fmt.Errorf("read schema: %s is not valid JSON", flags.schema)
+		}
+		req.Schema = string(schema)
+	}
 	return req, nil
 }
 
