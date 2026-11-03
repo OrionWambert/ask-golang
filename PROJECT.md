@@ -32,9 +32,13 @@ ask-golang/
 ├── go.sum
 ├── README.md
 ├── PROJECT.md
+├── Makefile
+├── scripts/              # install and uninstall, for Windows and POSIX
 ├── cmd/
 │   ├── root.go           # ask "message": flags and wiring
+│   ├── spinner.go        # activity indicator on stderr
 │   ├── config.go         # ask config
+│   ├── history.go        # ask history
 │   └── version.go        # ask version
 └── internal/
     ├── input/
@@ -47,9 +51,12 @@ ask-golang/
     │   ├── render.go     # Renderer interface, picked from --format
     │   ├── text.go
     │   ├── markdown.go
-    │   └── json.go
+    │   ├── json.go
+    │   └── code.go       # extracts fenced code blocks
+    ├── history/
+    │   └── history.go    # one JSON file per answer
     └── config/
-        └── config.go     # defaults: model, format, system prompt
+        └── config.go     # defaults: model, format, system prompt, personas
 ```
 
 How one question moves through the packages:
@@ -69,7 +76,7 @@ Things to know:
 
 ## Feature ideas
 
-Start with the first version: a message in, a streamed answer out, and `--format`. Most other ideas are thin wrappers over `claude` flags checked against version 2.1.302.
+All the features below are implemented. Most are thin wrappers over `claude` flags checked against version 2.1.302. The [README](README.md) documents their usage.
 
 ### First version
 
@@ -110,4 +117,5 @@ Start with the first version: a message in, a streamed answer out, and `--format
 - Send long messages through stdin rather than an argument, since Windows limits command line length.
 - Pass a `context.Context` to `exec.CommandContext` so Ctrl+C stops the `claude` process.
 - Check that `claude` is on the PATH and return a clear error if not.
-- From memory, not tested here: `stream-json` with `-p` also needs `--verbose`. Confirm it on your first run.
+- `stream-json` with `-p` also needs `--verbose`: `claude` refuses to run without it.
+- Dependencies are pinned to versions that still support Go 1.24. Newer `golang.org/x/*` releases raise the `go` directive to 1.26.
