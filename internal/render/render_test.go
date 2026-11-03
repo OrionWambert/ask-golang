@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"oriowambert.com/ask-golang/internal/claude"
+	"github.com/OrionWambert/ask-golang/internal/claude"
 )
 
 func renderString(t *testing.T, format string, opts Options, resp *claude.Response) string {

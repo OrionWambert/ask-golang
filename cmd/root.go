@@ -16,10 +16,10 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 
-	"oriowambert.com/ask-golang/internal/claude"
-	"oriowambert.com/ask-golang/internal/config"
-	"oriowambert.com/ask-golang/internal/input"
-	"oriowambert.com/ask-golang/internal/render"
+	"github.com/OrionWambert/ask-golang/internal/claude"
+	"github.com/OrionWambert/ask-golang/internal/config"
+	"github.com/OrionWambert/ask-golang/internal/input"
+	"github.com/OrionWambert/ask-golang/internal/render"
 )
 
 type askFlags struct {

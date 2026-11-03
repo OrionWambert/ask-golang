@@ -7,7 +7,7 @@ import (
 	"io"
 	"strings"
 
-	"oriowambert.com/ask-golang/internal/claude"
+	"github.com/OrionWambert/ask-golang/internal/claude"
 )
 
 type textRenderer struct{}

@@ -8,9 +8,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"oriowambert.com/ask-golang/internal/claude"
-	"oriowambert.com/ask-golang/internal/config"
-	"oriowambert.com/ask-golang/internal/history"
+	"github.com/OrionWambert/ask-golang/internal/claude"
+	"github.com/OrionWambert/ask-golang/internal/config"
+	"github.com/OrionWambert/ask-golang/internal/history"
 )
 
 var historyLimit int

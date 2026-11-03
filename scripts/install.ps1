@@ -26,7 +26,7 @@ $target = Join-Path $InstallDir 'ask.exe'
 
 Push-Location $root
 try {
-    & go build -ldflags "-X oriowambert.com/ask-golang/cmd.version=$version" -o $target .
+    & go build -ldflags "-X github.com/OrionWambert/ask-golang/cmd.version=$version" -o $target .
     if ($LASTEXITCODE -ne 0) {
         Write-Error 'go build failed'
         exit 1

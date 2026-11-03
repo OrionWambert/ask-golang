@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"oriowambert.com/ask-golang/internal/claude"
+	"github.com/OrionWambert/ask-golang/internal/claude"
 )
 
 // Supported output formats.

@@ -17,7 +17,7 @@ version="$(git describe --tags --always --dirty 2>/dev/null || echo dev)"
 target="$BIN_DIR/ask$(go env GOEXE)"
 
 mkdir -p "$BIN_DIR"
-go build -ldflags "-X oriowambert.com/ask-golang/cmd.version=$version" -o "$target" .
+go build -ldflags "-X github.com/OrionWambert/ask-golang/cmd.version=$version" -o "$target" .
 echo "Installed ask $version to $target"
 
 case ":$PATH:" in

@@ -6,8 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"oriowambert.com/ask-golang/internal/config"
-	"oriowambert.com/ask-golang/internal/render"
+	"github.com/OrionWambert/ask-golang/internal/config"
+	"github.com/OrionWambert/ask-golang/internal/render"
 )
 
 var configCmd = &cobra.Command{

@@ -72,7 +72,6 @@ internal/input --> cmd --> internal/claude <--> claude binary
 Things to know:
 
 - **Binary name:** `go build` produces `ask-golang.exe` from the folder name, so build with `go build -o ask.exe .`.
-- **Module path:** `go.mod` says `oriowambert.com`. Check whether that is a typo for `orionwambert.com`.
 
 ## Feature ideas
 
