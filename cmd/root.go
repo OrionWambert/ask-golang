@@ -142,7 +142,7 @@ func runAsk(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if flags.stats {
-		fmt.Fprintf(os.Stderr, "%s | %.1fs | $%.4f | %d turns | session %s\n",
+		fmt.Fprintf(os.Stderr, "%s | %.1fs | $%.4f | turns: %d | session %s\n",
 			resp.Model, float64(resp.DurationMS)/1000, resp.CostUSD, resp.NumTurns, resp.SessionID)
 	}
 	if flags.copyAnswer {
