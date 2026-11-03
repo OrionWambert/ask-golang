@@ -107,6 +107,34 @@ ask config set persona.reviewer "You review code and only list real bugs."
 git diff | ask --as reviewer "review this"
 ```
 
+## Piping
+
+Pipe any command into `ask`. Add a message to say what you want, or leave it out if the piped text is the question itself.
+
+```powershell
+git diff | ask "write a commit message"
+Get-ChildItem | ask "which file looks the largest?"
+"translate this into English: bonjour" | ask
+```
+
+Errors are not piped by default. Add `2>&1` to include them, which is what you want for a failing build or test run:
+
+```
+npm test 2>&1 | ask "why does this fail?"
+```
+
+Piping combines with the other flags:
+
+```
+git diff | ask "fix this" --code -o fix.patch
+```
+
+In Windows PowerShell, if accents turn into `?`, set the pipe encoding to UTF-8. Add this line to your `$PROFILE` to keep it:
+
+```powershell
+$OutputEncoding = [System.Text.UTF8Encoding]::new()
+```
+
 ## Config
 
 Flags always win over saved defaults.
