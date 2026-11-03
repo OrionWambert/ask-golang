@@ -135,6 +135,19 @@ In Windows PowerShell, if accents turn into `?`, set the pipe encoding to UTF-8.
 $OutputEncoding = [System.Text.UTF8Encoding]::new()
 ```
 
+## How it works
+
+`ask` does not call the Claude API itself. It runs your local `claude` binary, so it uses your existing Claude Code login and settings.
+
+1. **Build the prompt:** `internal/input` merges your files, piped input and message, in that order.
+2. **Apply defaults:** `cmd` reads your config, and flags on the command line win over it.
+3. **Run Claude:** `internal/claude` starts `claude -p` in stream-json mode and sends the prompt through stdin, so long messages never hit the command line length limit.
+4. **Read the events:** the same package reads Claude's events as they arrive, passes along the text, and collects the final result with its cost and session id.
+5. **Show the answer:** `text` prints each piece as it arrives. `markdown`, `json`, `--code`, `--schema` and `--output` wait for the complete answer, then `internal/render` formats it.
+6. **Finish up:** `internal/history` saves the answer, then `ask` handles `--stats` and `--copy`.
+
+Pressing Ctrl+C stops the `claude` process. `ask` exits with status 1 on an error and 130 when cancelled, so scripts can check the result.
+
 ## Config
 
 Flags always win over saved defaults.
