@@ -76,7 +76,7 @@ Your config and history are kept.
 ask [message] [flags]
 ```
 
-Quotes are optional: `ask what is a goroutine` works. If your message starts with a command name (`config`, `history`, `version`, `completion`, `help`), quote the whole message or write `ask -- version`.
+Quotes are optional: `ask what is a goroutine` works. If your message starts with a command name (`config`, `history`, `monitor`, `version`, `completion`, `help`), quote the whole message or write `ask -- version`.
 
 ### Output
 
@@ -218,6 +218,35 @@ ask history clear        # deletes everything, without asking
 ```
 
 Your message and the answer are saved. File and piped content is not. Skip one run with `--no-history`, or turn it off with `ask config set history false`.
+
+## Monitor
+
+`ask monitor` opens a live dashboard. Press `q` to quit and `r` to refresh. A cat drives across the top with a rainbow behind it, faster while Claude is working, if your terminal is tall enough.
+
+```
+ask monitor                  # live dashboard
+ask monitor --interval 5s    # reread local data less often (default 2s)
+ask monitor --once           # print one frame and exit, also used in a pipe
+```
+
+| Panel | Shows | Comes from |
+| --- | --- | --- |
+| Plan limits | 5-hour and 7-day usage, and when they reset | Claude Code's status line, after the setup below |
+| Tokens | Last 5 hours, today, 7 days, excluding cache reads | Claude Code's transcripts |
+| Live sessions | Running sessions, with their tokens and age | Claude Code's `sessions` folder |
+| Claude status | Services and open incidents, checked every minute | [status.claude.com](https://status.claude.com) |
+| Models | Each model's tokens over 7 days | Claude Code's transcripts |
+| Ask | Answers and estimated cost from `ask` | `ask` history |
+
+**Plan limits need one setup step.** Claude Code only shares them with status line commands, so add this to `~/.claude/settings.json`. It replaces any status line you already have:
+
+```json
+"statusLine": { "type": "command", "command": "ask monitor statusline" }
+```
+
+Limits appear on Pro, Max and Ultra plans once a session has had its first response, and they update while a session is running. `ask` saves them to `usage.json` next to the config. It never reads your Claude login.
+
+The dashboard only sends one request of its own, to the public status page. Claude Code's transcript and session files are internal and can change between versions, so after an update those panels may go empty until `ask` catches up. Set `CLAUDE_CONFIG_DIR` if you moved Claude Code's data folder.
 
 ## Shell completion
 
