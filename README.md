@@ -116,6 +116,8 @@ Piped input is read automatically. Files and piped input come before your messag
 | `--budget <usd>` | Maximum spend for this run. `claude` checks it between steps, so a run can end slightly over the limit, and it then exits with an error |
 | `--tools` | Let Claude use tools, following your Claude Code permission settings |
 
+`ask` uses the account `claude` is logged in with, and `ANTHROPIC_API_KEY` takes priority if it's set. Costs and `--budget` are based on Claude Code's local estimate at list price, not your actual bill. On a subscription, that figure isn't what you pay, so use `--budget` mainly with API billing.
+
 ### Tools are off by default
 
 Claude only sees what you give it and can't run commands, read or edit files, or use MCP servers. This keeps `curl ... | ask "summarize"` safe: text you pipe in may contain instructions, and with no tools there is nothing for them to trigger. Give Claude context with `-f` or a pipe.
@@ -218,6 +220,8 @@ ask history clear        # deletes everything, without asking
 ```
 
 Your message and the answer are saved. File and piped content is not. Skip one run with `--no-history`, or turn it off with `ask config set history false`.
+
+This only covers `ask`'s own history. Claude Code still saves its session files, including any file or piped content sent to it, because `-c` and `--resume` rely on them. `ask` doesn't pass `--no-session-persistence`, and `ask history clear` doesn't delete those files.
 
 ## Monitor
 
