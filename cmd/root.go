@@ -12,6 +12,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/atotto/clipboard"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 
@@ -22,6 +23,7 @@ import (
 )
 
 type askFlags struct {
+	copyAnswer   bool
 	output       string
 	code         bool
 	persona      string
@@ -54,6 +56,7 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	f := rootCmd.Flags()
+	f.BoolVar(&flags.copyAnswer, "copy", false, "copy the answer to the clipboard")
 	f.StringVarP(&flags.output, "output", "o", "", "write the answer to a file instead of the terminal")
 	f.BoolVar(&flags.code, "code", false, "print only the code blocks of the answer")
 	f.StringVar(&flags.persona, "as", "", "use a persona saved with ask config set persona.<name>")
@@ -130,7 +133,28 @@ func runAsk(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	return writeAnswer(renderer, resp, live && stream.wrote)
+	if err := writeAnswer(renderer, resp, live && stream.wrote); err != nil {
+		return err
+	}
+	if flags.copyAnswer {
+		copyToClipboard(resp)
+	}
+	return nil
+}
+
+// copyToClipboard only warns on failure: the answer was already delivered.
+func copyToClipboard(resp *claude.Response) {
+	text := resp.Text
+	if flags.code {
+		code, err := codeOnly(resp)
+		if err != nil {
+			return
+		}
+		text = code
+	}
+	if err := clipboard.WriteAll(text); err != nil {
+		fmt.Fprintln(os.Stderr, "ask: could not copy to the clipboard:", err)
+	}
 }
 
 func buildRequest(prompt string, cfg *config.Config) (claude.Request, error) {

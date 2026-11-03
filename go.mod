@@ -3,6 +3,7 @@ module oriowambert.com/ask-golang
 go 1.24.4
 
 require (
+	github.com/atotto/clipboard v0.1.4
 	github.com/charmbracelet/glamour v0.10.0
 	github.com/mattn/go-isatty v0.0.20
 	github.com/spf13/cobra v1.10.2
