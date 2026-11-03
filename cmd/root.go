@@ -20,11 +20,13 @@ import (
 )
 
 type askFlags struct {
-	format   string
-	model    string
-	files    []string
-	noStream bool
-	noStdin  bool
+	continueLast bool
+	resume       string
+	format       string
+	model        string
+	files        []string
+	noStream     bool
+	noStdin      bool
 }
 
 var flags askFlags
@@ -45,6 +47,9 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	f := rootCmd.Flags()
+	f.BoolVarP(&flags.continueLast, "continue", "c", false, "continue the most recent conversation in this folder")
+	f.StringVarP(&flags.resume, "resume", "r", "", "resume a conversation by session id")
+	rootCmd.MarkFlagsMutuallyExclusive("continue", "resume")
 	f.StringVarP(&flags.format, "format", "F", "", "output format: text, markdown or json (default text)")
 	f.StringVarP(&flags.model, "model", "m", "", "model to use, such as sonnet or haiku")
 	f.StringArrayVarP(&flags.files, "file", "f", nil, "add a file as context (repeatable)")
@@ -118,6 +123,8 @@ func runAsk(cmd *cobra.Command, args []string) error {
 
 func buildRequest(prompt string, cfg *config.Config) (claude.Request, error) {
 	req := claude.Request{Prompt: prompt, Model: firstNonEmpty(flags.model, cfg.Model)}
+	req.Continue = flags.continueLast
+	req.ResumeID = flags.resume
 	return req, nil
 }
 
