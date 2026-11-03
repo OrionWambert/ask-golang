@@ -7,6 +7,8 @@ import (
 	"io"
 	"os"
 	"strings"
+
+	"github.com/mattn/go-isatty"
 )
 
 // ErrEmpty means there is nothing to send to claude.
@@ -57,7 +59,11 @@ func Build(s Source) (string, error) {
 }
 
 // IsPiped reports whether f is a pipe or a redirected file, not a console.
+// Git Bash terminals look like pipes on Windows, so they are ruled out first.
 func IsPiped(f *os.File) bool {
+	if isatty.IsCygwinTerminal(f.Fd()) {
+		return false
+	}
 	info, err := f.Stat()
 	return err == nil && info.Mode()&os.ModeCharDevice == 0
 }
