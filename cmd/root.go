@@ -21,6 +21,7 @@ import (
 )
 
 type askFlags struct {
+	budget       float64
 	schema       string
 	continueLast bool
 	resume       string
@@ -49,6 +50,7 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	f := rootCmd.Flags()
+	f.Float64Var(&flags.budget, "budget", 0, "maximum spend for this run, in US dollars")
 	f.StringVar(&flags.schema, "schema", "", "file holding a JSON schema the answer must follow")
 	f.BoolVarP(&flags.continueLast, "continue", "c", false, "continue the most recent conversation in this folder")
 	f.StringVarP(&flags.resume, "resume", "r", "", "resume a conversation by session id")
@@ -137,6 +139,13 @@ func buildRequest(prompt string, cfg *config.Config) (claude.Request, error) {
 			return req, fmt.Errorf("read schema: %s is not valid JSON", flags.schema)
 		}
 		req.Schema = string(schema)
+	}
+	req.BudgetUSD = cfg.BudgetUSD
+	if flags.budget < 0 {
+		return req, errors.New("budget must be positive")
+	}
+	if flags.budget > 0 {
+		req.BudgetUSD = flags.budget
 	}
 	return req, nil
 }
