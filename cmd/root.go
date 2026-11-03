@@ -16,10 +16,10 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 
-	"oriowambert.com/ask-golang/internal/claude"
-	"oriowambert.com/ask-golang/internal/config"
-	"oriowambert.com/ask-golang/internal/input"
-	"oriowambert.com/ask-golang/internal/render"
+	"github.com/OrionWambert/ask-golang/internal/claude"
+	"github.com/OrionWambert/ask-golang/internal/config"
+	"github.com/OrionWambert/ask-golang/internal/input"
+	"github.com/OrionWambert/ask-golang/internal/render"
 )
 
 type askFlags struct {
@@ -38,6 +38,7 @@ type askFlags struct {
 	files        []string
 	noStream     bool
 	noStdin      bool
+	tools        bool
 }
 
 var flags askFlags
@@ -74,6 +75,7 @@ func init() {
 	f.StringArrayVarP(&flags.files, "file", "f", nil, "add a file as context (repeatable)")
 	f.BoolVar(&flags.noStream, "no-stream", false, "print the answer only once it is complete")
 	f.BoolVar(&flags.noStdin, "no-stdin", false, "do not read piped input")
+	f.BoolVar(&flags.tools, "tools", false, "let Claude use tools, following your Claude Code permission settings")
 }
 
 // Execute runs the CLI and exits with a non-zero status on failure.
@@ -112,7 +114,7 @@ func runAsk(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	req, err := buildRequest(prompt, cfg)
+	req, err := buildRequest(cmd, prompt, cfg)
 	if err != nil {
 		return err
 	}
@@ -166,10 +168,14 @@ func copyToClipboard(resp *claude.Response) {
 	}
 }
 
-func buildRequest(prompt string, cfg *config.Config) (claude.Request, error) {
+func buildRequest(cmd *cobra.Command, prompt string, cfg *config.Config) (claude.Request, error) {
 	req := claude.Request{Prompt: prompt, Model: firstNonEmpty(flags.model, cfg.Model)}
 	req.Continue = flags.continueLast
 	req.ResumeID = flags.resume
+	req.Tools = cfg.Tools
+	if cmd.Flags().Changed("tools") {
+		req.Tools = flags.tools
+	}
 	if flags.schema != "" {
 		schema, err := os.ReadFile(flags.schema)
 		if err != nil {

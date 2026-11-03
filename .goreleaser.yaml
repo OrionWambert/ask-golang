@@ -1,0 +1,30 @@
+version: 2
+
+builds:
+  - binary: ask
+    env:
+      - CGO_ENABLED=0
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+    ldflags:
+      - -s -w -X github.com/OrionWambert/ask-golang/cmd.version=v{{ .Version }}
+
+archives:
+  - name_template: "ask_{{ .Os }}_{{ .Arch }}"
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  use: git
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test"

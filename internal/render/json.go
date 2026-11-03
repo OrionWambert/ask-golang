@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"io"
 
-	"oriowambert.com/ask-golang/internal/claude"
+	"github.com/OrionWambert/ask-golang/internal/claude"
 )
 
 type jsonRenderer struct{}

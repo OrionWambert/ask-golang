@@ -1,4 +1,4 @@
-module oriowambert.com/ask-golang
+module github.com/OrionWambert/ask-golang
 
 go 1.24.4
 

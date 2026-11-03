@@ -1,5 +1,5 @@
 VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
-LDFLAGS := -X oriowambert.com/ask-golang/cmd.version=$(VERSION)
+LDFLAGS := -X github.com/OrionWambert/ask-golang/cmd.version=$(VERSION)
 
 .PHONY: build test install uninstall clean
 

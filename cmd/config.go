@@ -6,14 +6,14 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"oriowambert.com/ask-golang/internal/config"
-	"oriowambert.com/ask-golang/internal/render"
+	"github.com/OrionWambert/ask-golang/internal/config"
+	"github.com/OrionWambert/ask-golang/internal/render"
 )
 
 var configCmd = &cobra.Command{
 	Use:   "config",
 	Short: "View or change saved defaults",
-	Long: `Keys: model, format, system_prompt, budget, history and persona.<name>.
+	Long: `Keys: model, format, system_prompt, budget, history, tools and persona.<name>.
 
 Flags given on the command line always win over saved defaults.`,
 }

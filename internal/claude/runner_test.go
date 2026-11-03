@@ -85,7 +85,7 @@ func TestRunStopsClaudeWhenCancelled(t *testing.T) {
 
 func TestBuildArgsDefaults(t *testing.T) {
 	got := buildArgs(Request{Prompt: "secret"})
-	want := []string{"-p", "--output-format", "stream-json", "--verbose", "--include-partial-messages"}
+	want := []string{"-p", "--output-format", "stream-json", "--verbose", "--include-partial-messages", "--tools", "", "--strict-mcp-config"}
 	if !slices.Equal(got, want) {
 		t.Fatalf("got %v, want %v", got, want)
 	}
@@ -99,6 +99,7 @@ func TestBuildArgsOptions(t *testing.T) {
 		SystemPrompt: "be brief",
 		Schema:       "{}",
 		BudgetUSD:    0.5,
+		Tools:        true,
 	})
 	want := []string{
 		"--model", "haiku", "--continue", "--resume", "abc",

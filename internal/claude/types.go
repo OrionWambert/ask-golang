@@ -11,6 +11,7 @@ type Request struct {
 	SystemPrompt string
 	Schema       string
 	BudgetUSD    float64
+	Tools        bool
 }
 
 // Response is the outcome of a claude run.
