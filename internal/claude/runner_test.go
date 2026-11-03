@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"time"
 )
 
 // TestMain lets the test binary stand in for claude when ASK_FAKE_CLAUDE is set.
@@ -27,6 +28,8 @@ func TestMain(m *testing.M) {
 	case "budget":
 		fmt.Println(`{"type":"result","is_error":true,"errors":["over budget"]}`)
 		os.Exit(1)
+	case "hang":
+		time.Sleep(time.Minute)
 	}
 	os.Exit(0)
 }
@@ -63,6 +66,20 @@ func TestRunPrefersResultErrorOverExitCode(t *testing.T) {
 	var resultErr *ResultError
 	if !errors.As(err, &resultErr) || resultErr.Message != "over budget" {
 		t.Fatalf("err = %v", err)
+	}
+}
+
+func TestRunStopsClaudeWhenCancelled(t *testing.T) {
+	runner := fakeRunner(t, "hang")
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+	started := time.Now()
+	_, err := runner.Run(ctx, Request{}, nil)
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("err = %v", err)
+	}
+	if elapsed := time.Since(started); elapsed > 10*time.Second {
+		t.Fatalf("took %s to stop", elapsed)
 	}
 }
 
