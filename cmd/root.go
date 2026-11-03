@@ -100,10 +100,15 @@ func runAsk(cmd *cobra.Command, args []string) error {
 	live := format == render.Text && !flags.noStream
 	var stream liveWriter
 	var onText func(string)
+	spin := startSpinner(os.Stderr)
 	if live {
-		onText = stream.write
+		onText = func(text string) {
+			spin.stop()
+			stream.write(text)
+		}
 	}
 	resp, err := runner.Run(cmd.Context(), req, onText)
+	spin.stop()
 	stream.finish()
 	if err != nil {
 		return err
