@@ -21,6 +21,7 @@ import (
 )
 
 type askFlags struct {
+	code         bool
 	persona      string
 	budget       float64
 	schema       string
@@ -51,6 +52,7 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	f := rootCmd.Flags()
+	f.BoolVar(&flags.code, "code", false, "print only the code blocks of the answer")
 	f.StringVar(&flags.persona, "as", "", "use a persona saved with ask config set persona.<name>")
 	f.Float64Var(&flags.budget, "budget", 0, "maximum spend for this run, in US dollars")
 	f.StringVar(&flags.schema, "schema", "", "file holding a JSON schema the answer must follow")
@@ -109,7 +111,7 @@ func runAsk(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	live := format == render.Text && !flags.noStream && req.Schema == ""
+	live := format == render.Text && !flags.noStream && !flags.code && req.Schema == ""
 	var stream liveWriter
 	var onText func(string)
 	spin := startSpinner(os.Stderr)
@@ -181,7 +183,23 @@ func writeAnswer(renderer render.Renderer, resp *claude.Response, shown bool) er
 }
 
 func renderAnswer(w io.Writer, renderer render.Renderer, resp *claude.Response) error {
+	if flags.code {
+		code, err := codeOnly(resp)
+		if err != nil {
+			return err
+		}
+		_, err = fmt.Fprintln(w, code)
+		return err
+	}
 	return renderer.Render(w, resp)
+}
+
+func codeOnly(resp *claude.Response) (string, error) {
+	blocks := render.CodeBlocks(resp.Text)
+	if len(blocks) == 0 {
+		return "", errors.New("the answer has no code block")
+	}
+	return strings.Join(blocks, "\n\n"), nil
 }
 
 func renderOptions() render.Options {
