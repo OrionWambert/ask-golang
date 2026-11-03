@@ -42,6 +42,20 @@ func TestTextIndentsStructuredOutput(t *testing.T) {
 	}
 }
 
+func TestMarkdownUnstyledIsRaw(t *testing.T) {
+	got := renderString(t, Markdown, Options{}, &claude.Response{Text: "# Title"})
+	if got != "# Title\n" {
+		t.Fatalf("got %q", got)
+	}
+}
+
+func TestMarkdownStyledGoesThroughGlamour(t *testing.T) {
+	got := renderString(t, Markdown, Options{Styled: true, Width: 80}, &claude.Response{Text: "some word"})
+	if !strings.Contains(got, "some word") || got == "some word\n" {
+		t.Fatalf("got %q", got)
+	}
+}
+
 func TestJSONIsValidAndKeepsMarkup(t *testing.T) {
 	got := renderString(t, JSON, Options{}, &claude.Response{Text: "a <b>", SessionID: "s1", CostUSD: 0.5})
 	var decoded map[string]any

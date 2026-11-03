@@ -9,8 +9,9 @@ import (
 
 // Supported output formats.
 const (
-	Text = "text"
-	JSON = "json"
+	Text     = "text"
+	Markdown = "markdown"
+	JSON     = "json"
 )
 
 // Options tunes how an answer is displayed.
@@ -29,8 +30,10 @@ func New(format string, opts Options) (Renderer, error) {
 	switch format {
 	case Text:
 		return textRenderer{}, nil
+	case Markdown:
+		return markdownRenderer{opts: opts}, nil
 	case JSON:
 		return jsonRenderer{}, nil
 	}
-	return nil, fmt.Errorf("unknown format %q: use text or json", format)
+	return nil, fmt.Errorf("unknown format %q: use text, markdown or json", format)
 }
