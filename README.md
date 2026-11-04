@@ -115,6 +115,8 @@ Piped input is read automatically. Files and piped input come before your messag
 | `--as <persona>` | Use a saved persona |
 | `--budget <usd>` | Maximum spend for this run. `claude` checks it between steps, so a run can end slightly over the limit, and it then exits with an error |
 | `--tools` | Let Claude use tools, following your Claude Code permission settings |
+| `-x, --shell` | Let Claude do the task with shell commands, each approved by you |
+| `-y, --yes` | With `--shell`, run commands without asking |
 
 `ask` uses the account `claude` is logged in with, and `ANTHROPIC_API_KEY` takes priority if it's set. Costs and `--budget` are based on Claude Code's local estimate at list price, not your actual bill. On a subscription, that figure isn't what you pay, so use `--budget` mainly with API billing.
 
@@ -123,6 +125,25 @@ Piped input is read automatically. Files and piped input come before your messag
 Claude only sees what you give it and can't run commands, read or edit files, or use MCP servers. This keeps `curl ... | ask "summarize"` safe: text you pipe in may contain instructions, and with no tools there is nothing for them to trigger. Give Claude context with `-f` or a pipe.
 
 Add `--tools` when you want Claude to act in the current folder. It then has the tools your Claude Code permission settings allow, so only use it with input you trust. To make it the default, run `ask config set tools true`.
+
+### Do the task with `--shell`
+
+With `-x`, Claude does the work instead of telling you which commands to run. It proposes one command at a time, you approve it, `ask` runs it and sends the result back, and this goes on until the task is done.
+
+```
+$ ask -x "create the branches one and two, then open a PR from one"
+Create the first branch.
+> git switch -c one
+Run it? [y/N/a = all for this task] y
+Switched to a new branch 'one'
+...
+```
+
+Press Enter or `n` to stop. Nothing runs without your answer, and `a` approves the rest of the task. Commands run in the current folder, in PowerShell on Windows and in your `$SHELL` elsewhere, and can't read input. Claude still has no tools of its own, and a task stops after 25 commands. `--budget` covers the whole task.
+
+To use it by default, run `ask config set shell true`. Answers then appear all at once rather than word by word. It doesn't apply to `--code`, `--schema`, `-o` or the json format, and you can turn it off for one message with `--shell=false`.
+
+Command output, files and piped text could try to trick Claude into proposing something harmful, so read commands before you approve them. With piped input or `-f` files, each command needs its own approval: `a` isn't offered and `--yes` is refused. If you pipe untrusted text with `shell` on, as in `curl ... | ask "summarize"`, add `--shell=false` so that no command can even be proposed.
 
 ### Examples
 
@@ -204,6 +225,7 @@ ask config path
 | `budget` | Default maximum spend per run, in US dollars |
 | `history` | `true` or `false` |
 | `tools` | `true` or `false`. See [Tools are off by default](#tools-are-off-by-default) |
+| `shell` | `true` or `false`. See [Do the task with `--shell`](#do-the-task-with---shell) |
 | `persona.<name>` | Text added to the system prompt with `--as <name>` |
 
 The config lives in `ask/config.json` in your user config folder (`%APPDATA%` on Windows, `~/.config` on Linux, `~/Library/Application Support` on macOS). Set `ASK_CONFIG_DIR` to use another folder.
