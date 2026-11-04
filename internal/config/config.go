@@ -20,6 +20,7 @@ type Config struct {
 	BudgetUSD    float64           `json:"budget,omitempty"`
 	History      *bool             `json:"history,omitempty"`
 	Tools        bool              `json:"tools,omitempty"`
+	Shell        bool              `json:"shell,omitempty"`
 	Personas     map[string]string `json:"personas,omitempty"`
 }
 
@@ -104,6 +105,8 @@ func (c *Config) Get(key string) (string, bool, error) {
 		return strconv.FormatBool(c.HistoryEnabled()), c.History != nil, nil
 	case "tools":
 		return strconv.FormatBool(c.Tools), c.Tools, nil
+	case "shell":
+		return strconv.FormatBool(c.Shell), c.Shell, nil
 	}
 	return "", false, unknownKey(key)
 }
@@ -145,6 +148,12 @@ func (c *Config) Set(key, value string) error {
 			return fmt.Errorf("tools must be true or false, got %q", value)
 		}
 		c.Tools = enabled
+	case "shell":
+		enabled, err := strconv.ParseBool(value)
+		if err != nil {
+			return fmt.Errorf("shell must be true or false, got %q", value)
+		}
+		c.Shell = enabled
 	default:
 		return unknownKey(key)
 	}
@@ -170,6 +179,8 @@ func (c *Config) Unset(key string) error {
 		c.History = nil
 	case "tools":
 		c.Tools = false
+	case "shell":
+		c.Shell = false
 	default:
 		return unknownKey(key)
 	}
@@ -177,5 +188,5 @@ func (c *Config) Unset(key string) error {
 }
 
 func unknownKey(key string) error {
-	return fmt.Errorf("unknown config key %q: use model, format, system_prompt, budget, history, tools or persona.<name>", key)
+	return fmt.Errorf("unknown config key %q: use model, format, system_prompt, budget, history, tools, shell or persona.<name>", key)
 }

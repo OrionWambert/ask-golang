@@ -13,7 +13,7 @@ import (
 var configCmd = &cobra.Command{
 	Use:   "config",
 	Short: "View or change saved defaults",
-	Long: `Keys: model, format, system_prompt, budget, history, tools and persona.<name>.
+	Long: `Keys: model, format, system_prompt, budget, history, tools, shell and persona.<name>.
 
 Flags given on the command line always win over saved defaults.`,
 }

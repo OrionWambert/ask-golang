@@ -41,6 +41,7 @@ ask-golang/
 │   ├── spinner.go        # activity indicator on stderr
 │   ├── config.go         # ask config
 │   ├── history.go        # ask history
+│   ├── shell.go          # --shell: approving and running commands
 │   ├── monitor.go        # ask monitor and ask monitor statusline
 │   ├── monitor_view.go   # dashboard state and drawing, with Bubble Tea
 │   ├── monitor_scene.go  # the cat driving across the dashboard
@@ -60,6 +61,9 @@ ask-golang/
     │   └── code.go       # extracts fenced code blocks
     ├── history/
     │   └── history.go    # one JSON file per answer
+    ├── shell/
+    │   ├── shell.go       # the loop: Claude proposes, the user approves, the result goes back
+    │   └── exec.go        # runs one command in the user's shell
     ├── monitor/
     │   ├── monitor.go     # Collector: gathers the local data
     │   ├── transcripts.go # token use, read incrementally from transcripts
@@ -121,8 +125,11 @@ All the features below are implemented. Most are thin wrappers over `claude` fla
 | Cost and duration footer | `--stats` | fields of the JSON result |
 | Shell completion | `ask completion powershell` | built into Cobra |
 | Live dashboard | `ask monitor` | [Bubble Tea](https://github.com/charmbracelet/bubbletea), `internal/monitor` |
+| Do the task | `ask -x "open a PR"` | `--json-schema`, `--resume`, `internal/shell` |
 
 ### Implementation notes
+
+- `--shell` keeps Claude's tools off and runs the loop itself. `claude -p` can't ask for approval on the terminal, so `--tools` alone can't run commands unless your permission settings already allow them.
 
 - `ask monitor` gets plan limits from the status line JSON, the only documented source. It deliberately doesn't read Claude's OAuth credentials or call the undocumented usage endpoint.
 - Claude Code's docs call the transcript format internal, so `internal/monitor` reads only a few fields and ignores what it doesn't recognize. A request can span several lines and be copied on resume, so tokens are counted per request id.

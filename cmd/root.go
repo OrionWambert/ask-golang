@@ -39,6 +39,8 @@ type askFlags struct {
 	noStream     bool
 	noStdin      bool
 	tools        bool
+	shell        bool
+	yes          bool
 }
 
 var flags askFlags
@@ -76,6 +78,9 @@ func init() {
 	f.BoolVar(&flags.noStream, "no-stream", false, "print the answer only once it is complete")
 	f.BoolVar(&flags.noStdin, "no-stdin", false, "do not read piped input")
 	f.BoolVar(&flags.tools, "tools", false, "let Claude use tools, following your Claude Code permission settings")
+	f.BoolVarP(&flags.shell, "shell", "x", false, "let Claude do the task with shell commands, each approved by you")
+	f.BoolVarP(&flags.yes, "yes", "y", false, "with --shell, run commands without asking")
+	rootCmd.MarkFlagsMutuallyExclusive("shell", "tools")
 }
 
 // Execute runs the CLI and exits with a non-zero status on failure.
@@ -123,25 +128,39 @@ func runAsk(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	live := format == render.Text && !flags.noStream && flags.output == "" && !flags.code && req.Schema == ""
-	var stream liveWriter
-	var onText func(string)
-	spin := startSpinner(os.Stderr)
-	if live {
-		onText = func(text string) {
-			spin.stop()
-			stream.write(text)
-		}
-	}
-	resp, err := runner.Run(cmd.Context(), req, onText)
-	spin.stop()
-	stream.finish()
+	hasContext := stdin != nil || len(flags.files) > 0
+	shellMode, err := useShell(cmd, cfg, format, hasContext)
 	if err != nil {
 		return err
 	}
-	saveHistory(cfg, message, resp)
-	if err := writeAnswer(renderer, resp, live && stream.wrote); err != nil {
+
+	live := !shellMode && format == render.Text && !flags.noStream && flags.output == "" && !flags.code && req.Schema == ""
+	var stream liveWriter
+	var resp *claude.Response
+	if shellMode {
+		resp, err = runShell(cmd.Context(), runner, req, hasContext)
+	} else {
+		var onText func(string)
+		spin := startSpinner(os.Stderr)
+		if live {
+			onText = func(text string) {
+				spin.stop()
+				stream.write(text)
+			}
+		}
+		resp, err = runner.Run(cmd.Context(), req, onText)
+		spin.stop()
+		stream.finish()
+	}
+	if err != nil {
 		return err
+	}
+	// A declined command leaves shell mode with no answer to save or show.
+	if !shellMode || resp.Text != "" {
+		saveHistory(cfg, message, resp)
+		if err := writeAnswer(renderer, resp, live && stream.wrote); err != nil {
+			return err
+		}
 	}
 	if flags.stats {
 		fmt.Fprintf(os.Stderr, "%s | %.1fs | $%.4f | turns: %d | session %s\n",
